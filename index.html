@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            font-family: Arial, sans-serif;
+            flex-direction: column;
+        }
+
+        canvas {
+            background-color: #111;
+            border: 3px solid green;
+        }
+
+        #score {
+            margin: 10px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="score">Score: 0</div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const box = 20; // size of one grid block
+        let score = 0;
+
+        // Snake starting position
+        let snake = [];
+        snake[0] = { x: 9 * box, y: 10 * box };
+
+        // Food position
+        let food = {
+            x: Math.floor(Math.random() * 19 + 1) * box,
+            y: Math.floor(Math.random() * 19 + 1) * box,
+        };
+
+        let direction;
+
+        // Event listener for keyboard input
+        document.addEventListener("keydown", setDirection);
+
+        function setDirection(event) {
+            if (event.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+            else if (event.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+            else if (event.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+            else if (event.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+        }
+
+        function drawGame() {
+            // Draw background
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, 400, 400);
+
+            // Draw food
+            ctx.fillStyle = "red";
+            ctx.fillRect(food.x, food.y, box, box);
+
+            // Draw snake
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = i === 0 ? "#00ff00" : "#00cc66";
+                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+            }
+
+            // Current snake head position
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            // Move the snake
+            if (direction === "LEFT") snakeX -= box;
+            if (direction === "UP") snakeY -= box;
+            if (direction === "RIGHT") snakeX += box;
+            if (direction === "DOWN") snakeY += box;
+
+            // Check if the snake eats the food
+            if (snakeX === food.x && snakeY === food.y) {
+                score++;
+                document.getElementById("score").innerText = "Score: " + score;
+                food = {
+                    x: Math.floor(Math.random() * 19 + 1) * box,
+                    y: Math.floor(Math.random() * 19 + 1) * box,
+                };
+            } else {
+                // Remove the tail
+                snake.pop();
+            }
+
+            // Add new head
+            const newHead = { x: snakeX, y: snakeY };
+
+            // Game over conditions
+            if (
+                snakeX < 0 ||
+                snakeY < 0 ||
+                snakeX >= canvas.width ||
+                snakeY >= canvas.height ||
+                collision(newHead, snake)
+            ) {
+                clearInterval(game);
+                alert("Game Over! Final Score: " + score);
+            }
+
+            snake.unshift(newHead);
+        }
+
+        // Check collision with snake’s own body
+        function collision(head, array) {
+            return array.some(
+                (segment) => segment.x === head.x && segment.y === head.y
+            );
+        }
+
+        // Run the game every 100 milliseconds
+        const game = setInterval(drawGame, 200);
+    </script>
+</body>
+
+</html>
